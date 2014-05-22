@@ -14,10 +14,14 @@ def printout(string):
     sys.stdout.write(str(string)+"\n")
 
 
+def connect_torrent_client(args):
+    return torrentclient.connect(torrentclient.settings_from_args(args))
+
+
 def to_be_sorted(args):
     finished_files = set()
     try:
-        client = torrentclient.connect(torrentclient.settings_from_args(args))
+        client = connect_torrent_client(args)
         finished_files = torrentclient.get_finished_files(client)
     except torrentclient.TransmissionError as e:
         print('Cannot connect to torrent server: ' + str(e.original))
@@ -30,14 +34,6 @@ def to_be_sorted(args):
         return
     sort_files(to_be_sorted, args)
     printout('done, goodbye!')
-
-
-def downloaded_files(args):
-    try:
-        client = torrentclient.connect(torrentclient.settings_from_args(args))
-    except torrentclient.TransmissionError as e:
-        printout(e.original)
-        return None
 
 
 def sort_files(files, args):
@@ -61,6 +57,44 @@ def sort_files(files, args):
             printout('skipping file...')
 
 
+def select_files_to_download(args):
+    try:
+        client = connect_torrent_client(args)
+        all_files = torrentclient.get_all_files(client)
+    except torrentclient.TransmissionError as e:
+        print('Cannot connect to torrent server: ' + str(e.original))
+        return
+
+    if args.onlyselected:
+        files_to_process = [f for f in all_files if f.selected]
+    else:
+        files_to_process = all_files
+
+    printout(str(len(files_to_process)) + ' files to process')
+    for i, f in enumerate(files_to_process):
+        printout('file ' + str(i) + ': "' + f.name + '"')
+        action = ask_if_select_file(f.selected)
+        if action == 'skip':
+            printout('skipping file')
+            continue
+        else:
+            select = action == 'yes'
+            torrentclient.set_file_select_state(client, f, select)
+            if select:
+                printout('file selected for download')
+            else:
+                printout('removed file from downloading files')
+
+
+
+def downloaded_files(args):
+    try:
+        client = torrentclient.connect(torrentclient.settings_from_args(args))
+    except torrentclient.TransmissionError as e:
+        printout(e.original)
+        return None
+
+
 def ask_for_file_category():
     return input('category', enum = categories)
 
@@ -74,6 +108,14 @@ def ask_for_file_name():
     return name + ' ' + str(year) + extra
 
 
+def ask_if_select_file(currently_downloading):
+    if currently_downloading:
+        text = '(currently downloading)'
+    else:
+        text = '(currently not downloading)'
+    return input('download file ' + text, enum = ['yes', 'no', 'skip'])
+
+
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
@@ -84,6 +126,10 @@ def main():
         parser_sort.add_argument('--' + category + '_dir', default=folder)
     parser_sort.add_argument('--list', action='store_true')
     parser_sort.set_defaults(func=to_be_sorted)
+
+    parser_select = subparsers.add_parser('select')
+    parser_select.add_argument('--onlyselected', action='store_true')
+    parser_select.set_defaults(func=select_files_to_download)
 
     torrentclient.decorate_args_parser(parser)
 
