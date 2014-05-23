@@ -24,7 +24,8 @@ by asking you, for each file, first which category the file is and then
 based on that:
 * If it is a movie: the name, year and an optional extra text (used e.g.
   for CD indication)
-* If it is a serie: TODO
+* If it is a serie: the name of the shown, the season number, the
+  episode number and an optional extra text
 * If it is a music: TODO
 
 Default usage:
