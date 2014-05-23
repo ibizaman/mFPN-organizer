@@ -39,5 +39,8 @@ def files_in_directory(dir, stat = None):
 
 
 def make_hardlink(source, destination):
+    dir = os.path.dirname(destination)
+    if not os.access(dir, os.F_OK):
+        os.makedirs(dir)
     os.link(source, destination)
 

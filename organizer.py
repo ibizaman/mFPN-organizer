@@ -44,7 +44,7 @@ def sort_files(files, args):
             continue
 
         category = ask_for_file_category()
-        name = ask_for_file_name()
+        name = ask_for_file_name(category)
         finale_path = getattr(args, category+'_dir') + '/' + name + file.extension
 
         printout('new file name: '+finale_path)
@@ -99,13 +99,26 @@ def ask_for_file_category():
     return input('category', enum = categories)
 
 
-def ask_for_file_name():
-    name = input('name')
-    year = input('year', convert_to = year_type)
-    extra = input('extra (optional)')
-    if extra != '':
-        extra = ' ' + extra
-    return name + ' ' + str(year) + extra
+def ask_for_file_name(category):
+    if category == 'movie':
+        name = input('name')
+        year = input('year', convert_to = year_type)
+        extra = input('extra (optional)')
+        if extra != '':
+            extra = ' ' + extra
+        return name + ' ' + str(year) + extra
+    elif category == 'serie':
+        name = input('show name')
+        season = input('season n°', convert_to = int)
+        season_0 = "%02d" % season
+        episode_0 = "%02d" % input('episode n°', convert_to = int)
+        extra = input('extra (optional)')
+        if extra != '':
+            extra = ' ' + extra
+        return name + '/Season ' + str(season) + '/' + name + ' S' + str(season_0) + 'E' + str(episode_0) + extra
+    elif category == 'music':
+        raise NotImplementedError()
+        pass
 
 
 def ask_if_select_file(currently_downloading):
