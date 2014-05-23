@@ -40,7 +40,7 @@ def sort_files(files, args):
     printout(str(len(files)) + ' file(s) to sort:')
     for i, file in enumerate(files, 1):
         printout('file ' + str(i) + ': "' + file.name + '"')
-        if input('skip file?', convert_to = bool):
+        if not input('sort file?', convert_to = bool):
             continue
 
         category = ask_for_file_category()
