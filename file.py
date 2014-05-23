@@ -16,12 +16,14 @@ class File:
         return self.path.decode('utf-8')
 
     def __repr__(self):
-        return self.path.decode('utf-8') +'('+str(self.inode)+')'
+        return self.path.decode('utf-8')
 
 
 class FileInode(File):
-    def __init__(self, path, file):
-        super().__init__(path, file)
+    def __init__(self, base):
+        self.path = base.path
+        self.name = base.name
+        self.extension = base.extension
         self.inode = os.stat(self.path).st_ino
 
     def __hash__(self):
@@ -30,12 +32,22 @@ class FileInode(File):
     def __eq__(self, other):
         return self.inode == other.inode
 
+    def __str__(self):
+        return super().__str__() +' ('+str(self.inode)+')'
+
+    def __repr__(self):
+        return super().__str__() +' ('+str(self.inode)+')'
+
 
 def files_in_directory(dir, stat = None):
     all = []
     for path, folders, files in os.walk(dir):
         all.extend([File(path, file) for file in files])
     return set(all)
+
+
+def difference_on_inode(base_set, different_set):
+    return set([FileInode(f) for f in base_set]) - set([FileInode(f) for f in different_set])
 
 
 def make_hardlink(source, destination):

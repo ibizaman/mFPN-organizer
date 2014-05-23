@@ -1,4 +1,4 @@
-from file import files_in_directory, make_hardlink
+from file import files_in_directory, make_hardlink, difference_on_inode
 from userinput import input, year_type
 from utils import flatten_list
 import transmission as torrentclient
@@ -28,7 +28,7 @@ def to_be_sorted(args):
         return
     downloaded_files = files_in_directory(args.download_dir) & finished_files
     sorted_files = set(flatten_list([files_in_directory(dir) for c,dir in folders.items()]))
-    to_be_sorted = downloaded_files - sorted_files
+    to_be_sorted = difference_on_inode(downloaded_files, sorted_files)
     if args.list:
         [printout(file) for file in to_be_sorted]
         return
