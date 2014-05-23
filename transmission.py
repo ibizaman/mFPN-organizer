@@ -12,6 +12,7 @@ class FileState(File):
         self.id = id
         self.torrent = torrent
         self.selected = file['selected']
+        self.completed = file['size'] == file['completed']
 
 
 def decorate_args_parser(parser):
@@ -48,13 +49,7 @@ def connect(settings):
 
 
 def get_finished_files(client):
-    all_torrents = client.get_torrents()
-    files = []
-    for t in only_downloaded(all_torrents):
-        path = t.downloadDir
-        for f in selected_files(t):
-            files.append(File(path, f['name']))
-    return set(files)
+    return set([f for f in get_all_files(client) if f.completed])
 
 
 def get_all_files(client):
@@ -65,10 +60,6 @@ def set_file_select_state(client, file, state):
     files = client.get_files()
     files[file.torrent.id][file.id]['selected'] = state
     client.set_files(files)
-
-
-def only_downloaded(torrents):
-    return [t for t in torrents if t.percentDone == 1.0]
 
 
 def selected_files(torrent):
