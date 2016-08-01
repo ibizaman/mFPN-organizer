@@ -1,7 +1,7 @@
-from file import files_in_directory, make_hardlink, difference_on_inode
-from userinput import input, year_type
-from utils import flatten_list
-import transmission as torrentclient
+from .file import files_in_directory, make_hardlink, difference_on_inode
+from ..utils.userinput import input, year_type
+from ..utils.utils import flatten_list
+from . import transmission as torrentclient
 import argparse
 import sys
 
@@ -109,9 +109,9 @@ def ask_for_file_name(category):
         return name + ' ' + str(year) + extra
     elif category == 'serie':
         name = input('show name')
-        season = input('season n°', convert_to = int)
+        season = input(u'season \u0023)', convert_to = int)
         season_0 = "%02d" % season
-        episode_0 = "%02d" % input('episode n°', convert_to = int)
+        episode_0 = "%02d" % input(u'episode n\u0023', convert_to = int)
         extra = input('extra (optional)')
         if extra != '':
             extra = ' ' + extra

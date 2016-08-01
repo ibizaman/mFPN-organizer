@@ -1,6 +1,5 @@
 from transmissionrpc import Client, TransmissionError
-from file import File
-from utils import flatten_list
+from .file import File
 
 
 default_uri = "http://localhost:9091"
