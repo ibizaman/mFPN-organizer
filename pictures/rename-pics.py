@@ -30,6 +30,11 @@ def main():
 
     n_renames = 0
     for original_name, new_name in renames:
+        i = 0
+        while os.path.isfile(new_name + ('_' + str(i) if i else '')):
+            i += 1
+        new_name += '_' + str(i) if i else ''
+
         print format_rename(original_name, new_name)
         if not args['dry_run']:
             os.rename(original_name, new_name)
