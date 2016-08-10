@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 # sudo apt-get install libexiv2-dev python-pyexiv2
+# sudo pacman -S python2-pyexiv2
 
 import argparse
 import os
