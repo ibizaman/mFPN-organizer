@@ -5,10 +5,12 @@ import os
 import re
 import traceback
 
-def master_file(match, files):
-    for f in sorted(files):
-        if re.match(match, f):
-            return f
+def keep_by_order(match, files):
+    s_files = sorted(files)
+    for m in match:
+        for f in s_files:
+            if re.match(m, f):
+                return f
 
 
 def remove_files(files):
@@ -19,8 +21,8 @@ def remove_files(files):
             traceback.print_exc()
 
 
-def delete_first_files(match, files):
-    m = master_file(match, files)
+def delete_first_files(keep, files):
+    m = keep_by_order(keep, files)
     f = set(files)
     if m:
         f.remove(m)
@@ -58,7 +60,7 @@ def format_file(file, is_deleted):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument('fdupes_file')
-    p.add_argument('master_match')
+    p.add_argument('keep')
     p.add_argument('--same_line', action='store_true')
     p.add_argument('--remove', action='store_true')
 
@@ -66,8 +68,9 @@ def main():
 
     lines = open(args.fdupes_file).read().split('\n')
     dupes = split_lines(lines, same_line=args.same_line)
+    keep_order = args.keep_order.split(',')
     for files in dupes:
-        deleted = delete_first_files(args.master_match, files)
+        deleted = delete_first_files(keep, files)
         print(' '.join(format_file(f, f in deleted) for f in sorted(files, key=lambda k: (k in deleted, k))))
         if args.remove:
             remove_files(deleted)
