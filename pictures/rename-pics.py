@@ -6,9 +6,9 @@
 import argparse
 import os
 import re
-from glob import glob
-
-import pyexiv2
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+import utils  #pylint: disable=import-error,wrong-import-position
 
 
 def main():
@@ -24,7 +24,7 @@ def main():
     if args.get('original_regex'):
         args.update(parse_original_regex(args.pop('original_regex')))
 
-    images = (pyexiv2.ImageMetadata(f) for f in get_all_files(args['files'].split(',')))
+    images = (utils.exif.get_metadata(f) for f in utils.get_all_files(args['files'].split(',')))
 
     renames = rename_images(images, args['format'], args)
 
@@ -50,17 +50,6 @@ def parse_original_regex(arg):
     return {'original_regex': args[1], 'original_replacement': args[2]}
 
 
-def get_all_files(lst):
-    files = []
-    lst = (x for l in lst for x in glob(l))
-    for l in lst:
-        if os.path.isdir(l):
-            files += get_recursive_files_from_dir(l)
-        else:
-            files.append(l)
-    return sorted(files)
-
-
 def rename_images(images, name_format, args):
     for i in images:
         try:
@@ -75,16 +64,8 @@ def rename_images(images, name_format, args):
         yield (original_name, new_name)
 
 
-def get_recursive_files_from_dir(dir):
-    all_files = []
-    for dirpath, _, files in os.walk(dir):
-        all_files += [os.path.join(dirpath, basename) for basename in files]
-    return all_files
-
-
 def rename_image(image, filename_format, args):
-    dirname, _, basename = image.filename.rpartition(os.path.sep)
-    basename, _, extension = basename.rpartition('.')
+    dirname, basename, extension = utils.get_path_info(image.filename)
 
     mapping = {}
     if '{date}' in filename_format:
@@ -99,7 +80,7 @@ def rename_image(image, filename_format, args):
         return None
 
     new_basename = filename_format.format(**mapping)
-    return os.path.join(dirname, new_basename) + '.' + extension
+    return utils.merge_path_info(dirname, new_basename, extension)
 
 
 def get_date_mapping(date_format, image):
@@ -141,4 +122,3 @@ def format_rename(original_name, new_name):
 
 if __name__ == '__main__':
     main()
-

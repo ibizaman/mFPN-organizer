@@ -47,14 +47,14 @@ def split_lines(lines, same_line):
     return x
 
 
-def format_file(file, is_deleted):
+def format_file(path, is_deleted):
     ENDC = '\033[0m'
     FAIL = '\033[91m'
 
     if is_deleted:
-        return FAIL + file + ENDC
+        return FAIL + path + ENDC
     else:
-        return file
+        return path
 
 
 def main():
@@ -68,14 +68,14 @@ def main():
 
     lines = open(args.fdupes_file).read().split('\n')
     dupes = split_lines(lines, same_line=args.same_line)
-    keep_order = args.keep_order.split(',')
+    keep_order = args.keep.split(',')
     for files in dupes:
-        deleted = delete_first_files(keep, files)
-        print(' '.join(format_file(f, f in deleted) for f in sorted(files, key=lambda k: (k in deleted, k))))
+        deleted = delete_first_files(keep_order, files)
+        sorted_files = sorted(files, key=lambda k, d=deleted: (k in d, k))
+        print ' '.join(format_file(f, f in deleted) for f in sorted_files)
         if args.remove:
             remove_files(deleted)
 
 
 if __name__ == '__main__':
     main()
-

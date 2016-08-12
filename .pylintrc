@@ -1,0 +1,15 @@
+[MESSAGES CONTROL]
+
+disable=
+    missing-docstring,
+    invalid-name,
+    bare-except,
+    broad-except,
+    line-too-long,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-instance-attributes
+
+[TYPECHECK]
+
+ignored-modules = cv2
