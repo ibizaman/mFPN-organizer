@@ -243,7 +243,10 @@ def reset_faces(db):
 
 
 def detect_faces(casc_files, path, width, height):
-    face_cascades = [cv2.CascadeClassifier(casc) for casc in casc_files]
+    if detect_faces.casc_files != casc_files:
+        detect_faces.casc_files = casc_files
+        detect_faces.face_cascades = [cv2.CascadeClassifier(casc) for casc in casc_files]
+
     gray = cv2.cvtColor(cv2.imread(path), cv2.COLOR_BGR2GRAY)
 
     min_length = min(width/30, height/30)
@@ -254,12 +257,13 @@ def detect_faces(casc_files, path, width, height):
         minNeighbors=5,
         minSize=(min_length, min_length),
         flags=cv2.cv.CV_HAAR_SCALE_IMAGE
-    ) for casc in face_cascades]
-
+    ) for casc in detect_faces.face_cascades]
 
     faces = [f for faces in all_faces for f in faces]
     faces, _ = cv2.groupRectangles(faces, 2)
     return faces
+detect_faces.casc_files = None
+detect_faces.face_cascades = None
 
 
 def inspect_extracted_faces(db, show_all=False):
