@@ -1,6 +1,7 @@
 import errno
 import hashlib
 import os
+import shutil
 from glob import glob
 
 
@@ -51,3 +52,14 @@ def mkdir_p(path):
 def md5(path):
     return hashlib.md5(path).hexdigest()
 
+
+def md5_file(path):
+    return hashlib.md5(open(path).read()).hexdigest()
+
+
+def copy(src, dst):
+    shutil.copy2(src, dst)
+
+
+def move(src, dst):
+    shutil.move(src, dst)

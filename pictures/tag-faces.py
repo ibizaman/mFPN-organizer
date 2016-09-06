@@ -196,7 +196,7 @@ def add_pictures(db, pictures):
     for path in pictures:
         try:
             complete_path = os.path.abspath(path)
-            md5 = utils.md5(path)
+            md5 = utils.md5_file(path)
             image = cv2.imread(path)
             width, height = utils.cv2.get_size(image)
 
