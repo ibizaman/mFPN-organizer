@@ -1,16 +1,68 @@
 #!/usr/bin/env python
 
-import argparse
+"""
+Enhanced management of fdupes output.
+
+Usage:
+  fdupes-dedupe [-1] [-f] [-v] <file> (<keep> | --not=<discard>)...
+
+<file>     file output of fdupes
+<keep>     regex of files you want to keep
+<discard>  regex of files you don't want to keep
+
+
+Options:
+  -1 --same-line  set if fdupes was run with -1 argument too
+  -f --remove     actually remove the files in red
+"""
+
 import os
 import re
 import traceback
 
-def keep_by_order(match, files):
+from docopt import docopt
+
+
+def main(argv=None):
+    args = docopt(__doc__, argv=argv)
+
+    fdupes_file = args['<file>']
+    keep = args['<keep>']
+    discard = args['--not']
+    same_line = args['--same-line']
+    remove = args['--remove']
+
+    lines = open(fdupes_file).read().split('\n')
+    dupes = split_lines(lines, same_line=same_line)
+    for files in dupes:
+        deleted = delete_first_files(keep, discard, files)
+        print(' '.join(format_file(f, f in deleted) for f in sorted(files, key=lambda k: (k in deleted, k))))
+        if remove:
+            remove_files(deleted)
+
+
+def keep_by_order(keep, discard, files):
     s_files = sorted(files)
-    for m in match:
-        for f in s_files:
-            if re.match(m, f):
-                return f
+
+    max_f = None
+    max_sum = 0
+    for f in s_files:
+        sum_f = sum(bool(re.match(k, f)) for k in keep)
+        if sum_f > max_sum:
+            max_sum = sum_f
+            max_f = f
+    if max_sum > 0:
+        return max_f
+
+    max_f = None
+    max_sum = 0
+    for f in s_files:
+        sum_f = sum(not re.match(d, f) for d in discard)
+        if sum_f > max_sum:
+            max_sum = sum_f
+            max_f = f
+    if max_sum > 0:
+        return max_f
 
 
 def remove_files(files):
@@ -21,8 +73,8 @@ def remove_files(files):
             traceback.print_exc()
 
 
-def delete_first_files(keep, files):
-    m = keep_by_order(keep, files)
+def delete_first_files(keep, discard, files):
+    m = keep_by_order(keep, discard, files)
     f = set(files)
     if m:
         f.remove(m)
@@ -55,25 +107,6 @@ def format_file(file, is_deleted):
         return FAIL + file + ENDC
     else:
         return file
-
-
-def main():
-    p = argparse.ArgumentParser()
-    p.add_argument('fdupes_file')
-    p.add_argument('keep')
-    p.add_argument('--same_line', action='store_true')
-    p.add_argument('--remove', action='store_true')
-
-    args = p.parse_args()
-
-    lines = open(args.fdupes_file).read().split('\n')
-    dupes = split_lines(lines, same_line=args.same_line)
-    keep_order = args.keep_order.split(',')
-    for files in dupes:
-        deleted = delete_first_files(keep, files)
-        print(' '.join(format_file(f, f in deleted) for f in sorted(files, key=lambda k: (k in deleted, k))))
-        if args.remove:
-            remove_files(deleted)
 
 
 if __name__ == '__main__':
