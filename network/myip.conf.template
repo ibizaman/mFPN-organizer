@@ -1,0 +1,3 @@
+remote=tiser
+machine=mam-rpi
+postgres_user=dyndns
