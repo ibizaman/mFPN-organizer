@@ -10,6 +10,11 @@ Does not rely on external service to know the external ip address.
 3. cp myip.conf.template /etc/myip.conf
 4. Set cron job to run myip.sh regularly
 
+# network/port.py
+
+Enforce a list of port forwarding listed in a config file using the
+external command `upnpc`.
+
 # storage/lvm.py
 
 Prints summary view of lvm physical volumes, volume groups and logical

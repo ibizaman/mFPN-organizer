@@ -1,0 +1,5 @@
+- port: 80
+  protocol: tcp
+- port: 1001
+  external_port: 443
+  protocol: tcp
