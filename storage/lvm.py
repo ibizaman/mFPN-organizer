@@ -10,55 +10,126 @@ Install:
     sudo pip2 install docopt lvm2py mdstat
 """
 
+import itertools
+import os
+
 from docopt import docopt
 from lvm2py import LVM
 import mdstat
+import parted
 
 
 def main(argv=None):
     args = docopt(__doc__, argv=argv)
-    lvm = LVM()
 
     if args['-s']:
-        summary(lvm)
+        summary()
+    else:
+        summary()
 
 
-def summary(lvm):
+def summary():
+    used_devices = {}
+
+    mounts = get_mounts(used_devices)
+
+    output_raid = print_raid(used_devices)
+
+    output_lvm = print_lvm(mounts, used_devices)
+
+    output_mounts = print_mounts(mounts)
+
+    output_devices = print_devices(used_devices)
+
+    print '\n'.join(columns(output_raid, output_lvm, output_mounts, output_devices))
+
+
+def print_raid(used_devices):
+    output = [[' Raid '], []]
     raids = get_raids()
-    raids_str = []
     for raid_name, raid in raids.iteritems():
-        raids_str.append([raid_name, '[' + raid['personality'] + ']', str(raid['status']['non_degraded_disks']) + '/' + str(raid['status']['raid_disks'])] + ['/dev/' + n for n in raid['disks']])
+        used_devices.update({'/dev/' + n: 'R' for n in raid['disks']})
+        output.append([raid_name, '[' + raid['personality'] + ']', str(raid['status']['non_degraded_disks']) + '/' + str(raid['status']['raid_disks'])])
+        for d in raid['disks']:
+            output.append(['  ' + '/dev/' + d])
 
-    print pad(raids_str)
-    print
+    return pad(output)
 
+
+def print_lvm(mounts, used_devices):
+    output = [' LVM ', '']
+    lvm = LVM()
     for vg in sorted(lvm.vgscan(), key=lambda x: x.name):
-        print vg.name, int(vg.size('GiB')), 'GiB', '(' + str(int((1 - vg.free_size() / vg.size()) * 100)) + '%)'
+        output.append(' '.join([vg.name, human_number(vg.size('KiB'), 'KiB'), '(' + str(int((1 - vg.free_size() / vg.size()) * 100)) + '%)']))
 
-        print '  Physical Volumes:'
-        pvs = []
+        vs = []
         for pv in sorted(vg.pvscan(), key=lambda x: x.name):
             name = pv.name
-            if pv.name in raids:
-                name += '[R]'
-            pvs.append(['   ', name, int(pv.size('GiB')), 'GiB', '(' + str(int((1 - pv.free() / pv.size()) * 100)) + '%)'])
-        print pad(pvs)
+            used_devices[name] = 'L'
+            vs.append([' P ', name, human_number(pv.size('KiB'), 'KiB'), '(' + str(int((1 - pv.free() / pv.size()) * 100)) + '%)'])
 
-        print '  Logical Volumes:'
-        lvs = []
         for lv in sorted(vg.lvscan(), key=lambda x: x.name):
-            lvs.append(['   ', lv.name, int(lv.size('GiB')), 'GiB'])
-        print pad(lvs)
+            used = mounts.get('/dev/mapper/' + vg.name + '-' + lv.name, {'used': ''})['used']
+            vs.append([' L ', lv.name, human_number(lv.size('KiB'), 'KiB'), used])
 
-        print
+        output += pad(vs)
+
+    return output
+
+
+def print_devices(used_devices):
+    output = [' Devices ', '']
+    for dev in sorted(parted.getAllDevices(), key=lambda x: x.path):
+        output.append(dev.path + ' ' + dev.model)
+        try:
+            partitions = []
+            disk = parted.Disk(dev)
+            for partition in disk.partitions:
+                used = ' ' + used_devices.get(partition.path, '') + ' '
+                partitions.append([used, partition.path, human_number(partition.getLength() * partition.geometry.device.sectorSize)])
+            output += pad(partitions)
+        except parted.DiskLabelException:
+            pass
+
+    return output
 
 
 def get_raids():
     return {'/dev/' + k: v for k, v in mdstat.parse()['devices'].iteritems()}
 
 
-def pad(rows):
-    max_column_size = [0 for _ in xrange(len(rows[0]))]
+def get_mounts(used_devices):
+    mounts = {}
+    with open('/proc/mounts') as f:
+        for line in f.read().split('\n'):
+            try:
+                fs_name, mount_point, fs_type = line.split()[:3]
+                used_devices[fs_name] = 'M'
+
+                stat = os.statvfs(mount_point)
+                total = stat.f_blocks * stat.f_frsize
+                used = '(' + str(int((1 - float(stat.f_bfree) / stat.f_blocks) * 100)) + '%)'
+                mounts[fs_name] = {'mount_point': mount_point, 'fs_type': fs_type, 'used': used, 'total': human_number(total)}
+            except:
+                pass
+
+    return mounts
+
+
+def print_mounts(mounts):
+    output = [' Mounts ', '']
+
+    mnts = []
+    for fs_name, mount in sorted(mounts.iteritems(), key=lambda k: k[0]):
+        mnts.append([fs_name, mount['fs_type'], mount['total'], mount['used']])
+        mnts.append(['  ' + mount['mount_point']])
+
+    output += pad(mnts)
+    return output
+
+
+def pad(rows, between=' '):
+    max_column_size = [0 for _ in xrange(max(len(r) for r in rows))]
     for row in rows:
         for i, col in enumerate(row):
             max_column_size[i] = max(max_column_size[i], len(str(col)))
@@ -68,7 +139,21 @@ def pad(rows):
             rows[row][col] = str(rows[row][col])
             rows[row][col] += ' ' * (max_column_size[col] - len(rows[row][col]))
 
-    return '\n'.join(' '.join(x for x in row) for row in rows)
+    return [between.join(x for x in row) for row in rows]
+
+
+def columns(*lines):
+    return pad([list(row) for row in itertools.izip_longest(*lines, fillvalue='')], between='  |  ')
+
+
+def human_number(number, start_scale='B', round_digits=2):
+    number = float(number)
+    scale = ['B', 'KiB', 'MiB', 'GiB', 'TiB']
+    current_scale = scale.index(start_scale)
+    while int(number / 1024) > 0 and current_scale < len(scale) - 1:
+        number = number / 1024
+        current_scale += 1
+    return str(round(number * 10**round_digits) / 10**round_digits) + ' ' + scale[current_scale]
 
 
 if __name__ == '__main__':
