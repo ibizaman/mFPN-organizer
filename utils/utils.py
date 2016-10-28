@@ -1,4 +1,6 @@
+import errno
 import itertools
+import os
 import re
 import subprocess
 
@@ -43,4 +45,26 @@ def human_number(number, start_scale='B', round_digits=2):
         number = number / 1024
         current_scale += 1
     return str(round(number * 10**round_digits) / 10**round_digits) + ' ' + scale[current_scale]
+
+
+def ensure_path_exists(path):
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            pass
+        else:
+            raise
+
+
+def read_file_or_empty(path):
+    try:
+        with open(path) as f:
+            for line in f:
+                yield line
+    except IOError as e:
+        if e.errno == errno.ENOENT:
+            yield ''
+        else:
+            raise
 

@@ -1,6 +1,13 @@
 Various tools to automate tasks.
 
+# network/myip.py
+
+Store current external ip address into a godaddy A record, or update the
+record.
+
 # network/myip.sh
+
+[DEPRECATED]
 
 Store current external ip address into a postgres db in a remote host.
 Does not rely on external service to know the external ip address.

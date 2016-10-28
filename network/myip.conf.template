@@ -1,3 +1,18 @@
-remote=tiser
-machine=mam-rpi
-postgres_user=dyndns
+ip:
+    upnpc: false
+    ipify: true
+
+postgres:
+    enable: false
+    machine: mybox
+    host: myotherbox
+    user: dyndns
+
+godaddy:
+    enable: true
+    name: '@'
+    key: key
+    secret: secret
+    domain: mydomain.com
+
+/* vim: set ts=8 sw=4 tw=0 noet syn=yaml :*/
