@@ -90,7 +90,8 @@ def print_devices(used_devices):
             for partition in disk.partitions:
                 used = ' ' + used_devices.get(partition.path, '') + ' '
                 partitions.append([used, partition.path, human_number(partition.getLength() * partition.geometry.device.sectorSize)])
-            output += pad(partitions)
+            if partitions:
+                output += pad(partitions)
         except parted.DiskLabelException:
             pass
 
