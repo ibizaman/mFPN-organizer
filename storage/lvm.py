@@ -83,7 +83,7 @@ def print_lvm(mounts, used_devices):
 def print_devices(used_devices):
     output = [' Devices ', '']
     for dev in sorted(parted.getAllDevices(), key=lambda x: x.path):
-        output.append(dev.path + ' ' + dev.model)
+        output.append(dev.path + ' ' + dev.model + ' ' + human_number(dev.getSize(), 'MiB'))
         try:
             partitions = []
             disk = parted.Disk(dev)
