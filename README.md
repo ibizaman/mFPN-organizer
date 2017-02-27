@@ -1,5 +1,16 @@
 Various tools to automate tasks.
 
+# Install
+
+Use venv and pip:
+
+```
+sudo pacman -S python-pip
+sudo pip install -U virtualenv
+virtualenv .venv
+.venv/bin/pip install -e '.[dev,test]'
+```
+
 # network/myip.py
 
 Store current external ip address into a godaddy A record, or update the
