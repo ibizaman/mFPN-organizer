@@ -15,6 +15,8 @@ setup(
     long_description=long_description,
     packages=find_packages(),
     install_requires=[
+        'beautifulsoup4==4.5.3',
+        'requests==2.13.0',
     ],
     extras_require={
         'dev': [
