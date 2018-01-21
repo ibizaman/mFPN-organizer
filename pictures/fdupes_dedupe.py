@@ -10,6 +10,8 @@ Usage:
 <keep>     regex of files you want to keep
 <discard>  regex of files you don't want to keep
 
+Example <keep> or <discard>:
+  .*backup.*      keep all files with backup somewhere in the path
 
 Options:
   -1 --same-line  set if fdupes was run with -1 argument too
