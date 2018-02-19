@@ -48,9 +48,11 @@ def get_existing_rules():
     rules = []
     for rule_str in rules_str:
         rule_str_split = re.split(r'\s+|->|:', rule_str)
-        rule = {'port': int(rule_str_split[5]), 'protocol': rule_str_split[2].lower()}
-        if int(rule_str_split[3]) != rule['port']:
-            rule['external_port'] = int(rule_str_split[3])
+        if rule_str_split[0] == '':
+            del rule_str_split[0]
+        rule = {'port': int(rule_str_split[4]), 'protocol': rule_str_split[1].lower()}
+        if int(rule_str_split[2]) != rule['port']:
+            rule['external_port'] = int(rule_str_split[2])
         rules.append(rule)
     return rules
 
