@@ -30,7 +30,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import utils
 
 
-IPIFY_URL = "https://api.ipify.org?format=json"
+IPIFY_URL = "https://api.ipify.org"
 
 GODADDY_URL = "https://api.godaddy.com/v1"
 GODADDY_URL_DOMAIN = GODADDY_URL + "/domains/{domain}"
@@ -45,7 +45,7 @@ GODADDY_HEADERS = {
 def current_ip_ipify():
     r = requests.get(IPIFY_URL)
     r.raise_for_status()
-    return r.json()['ip']
+    return r.text
 
 
 def previous_ip(temp_path):
