@@ -89,14 +89,13 @@ def main(argv=None):
 
     print('New ip: "{}"'.format(ip))
 
-    store_ip(temp_path, ip)
-
     if 'godaddy' in config and config['godaddy'].get('enable'):
         g = config['godaddy']
         verbose('Updating godaddy domain "{domain}" A record "{record}"'.format(domain=g['domain'], record=g['name']))
         godaddy_set_ip(g['domain'], g['name'], g['key'], g['secret'], ip)
 
+    store_ip(temp_path, ip)
+
 
 if __name__ == '__main__':
     main()
-
