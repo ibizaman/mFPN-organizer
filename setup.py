@@ -16,7 +16,7 @@ setup(
     packages=find_packages(),
     install_requires=[
         'beautifulsoup4==4.5.3',
-        'requests==2.13.0',
+        'requests==2.20.0',
         'docopt==0.6.2',
     ],
     extras_require={
