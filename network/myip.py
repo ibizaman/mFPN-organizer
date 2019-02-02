@@ -64,7 +64,7 @@ def godaddy_set_ip(domain, name, key, secret, ip):
     headers = GODADDY_HEADERS
     headers['Authorization'] = headers['Authorization'].format(key=key, secret=secret)
 
-    r = requests.put(url, headers=headers, data=json.dumps({'data': ip}))
+    r = requests.put(url, headers=headers, data=json.dumps([{'data': ip}]))
     if r.status_code != 200:
         pprint(dict(r.headers))
         pprint(r.text)
